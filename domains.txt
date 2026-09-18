@@ -1,0 +1,9 @@
+# Sample domains for tls_audit. One host per line; lines starting with
+# '#' are comments. Mix of clean and deliberately broken hosts so the
+# grading rules have something to flag.
+github.com
+cloudflare.com
+google.com
+expired.badssl.com
+tls-v1-0.badssl.com
+rc4.badssl.com

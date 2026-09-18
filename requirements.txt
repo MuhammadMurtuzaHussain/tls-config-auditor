@@ -1,0 +1,2 @@
+cryptography>=42.0
+tabulate>=0.9
