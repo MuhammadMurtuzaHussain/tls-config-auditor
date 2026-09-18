@@ -40,7 +40,14 @@ def render_table(rows: list[dict], use_color: bool = True) -> str:
                 "; ".join(row.get("issues", [])[:2]) or "-",
             ]
         )
-    headers = ["Domain", "Status", "Protocol", "Cipher", "Cert days left", "Top issue(s)"]
+    headers = [
+        "Domain",
+        "Status",
+        "Protocol",
+        "Cipher",
+        "Cert days left",
+        "Top issue(s)",
+    ]
     return tabulate(table_rows, headers=headers, tablefmt="simple")
 
 

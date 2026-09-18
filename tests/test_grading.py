@@ -95,7 +95,10 @@ def test_certificate_warn_on_long_validity_period():
 
 
 def test_overall_status_worst_first():
-    assert grading.overall_status([grading.PASS, grading.WARN, grading.FAIL]) == grading.FAIL
+    assert (
+        grading.overall_status([grading.PASS, grading.WARN, grading.FAIL])
+        == grading.FAIL
+    )
     assert grading.overall_status([grading.PASS, grading.WARN]) == grading.WARN
     assert grading.overall_status([grading.PASS, grading.PASS]) == grading.PASS
     assert grading.overall_status([]) == grading.UNKNOWN

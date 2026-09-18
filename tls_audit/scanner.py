@@ -67,10 +67,12 @@ def _probe_single_protocol(host: str, port: int, version: str, timeout: float) -
         return False
 
     try:
-        with socket.create_connection((host, port), timeout=timeout) as sock:
-            with ctx.wrap_socket(sock, server_hostname=host):
-                return True
-    except (ssl.SSLError, OSError, socket.timeout):
+        with (
+            socket.create_connection((host, port), timeout=timeout) as sock,
+            ctx.wrap_socket(sock, server_hostname=host),
+        ):
+            return True
+    except (TimeoutError, ssl.SSLError, OSError):
         return False
 
 
@@ -88,26 +90,30 @@ def _default_handshake(host: str, port: int, timeout: float):
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     try:
-        with socket.create_connection((host, port), timeout=timeout) as sock:
-            with ctx.wrap_socket(sock, server_hostname=host) as tls:
-                cipher = tls.cipher()  # (name, protocol, secret_bits) or None
-                protocol = tls.version()
-                der_cert = tls.getpeercert(binary_form=True)
-                cipher_name = cipher[0] if cipher else None
-                return protocol, cipher_name, der_cert, None
-    except (ssl.SSLError, OSError, socket.timeout) as exc:
+        with (
+            socket.create_connection((host, port), timeout=timeout) as sock,
+            ctx.wrap_socket(sock, server_hostname=host) as tls,
+        ):
+            cipher = tls.cipher()  # (name, protocol, secret_bits) or None
+            protocol = tls.version()
+            der_cert = tls.getpeercert(binary_form=True)
+            cipher_name = cipher[0] if cipher else None
+            return protocol, cipher_name, der_cert, None
+    except (TimeoutError, ssl.SSLError, OSError) as exc:
         return None, None, None, exc
 
 
 def _check_trust(host: str, port: int, timeout: float):
     ctx = ssl.create_default_context()
     try:
-        with socket.create_connection((host, port), timeout=timeout) as sock:
-            with ctx.wrap_socket(sock, server_hostname=host):
-                return True, None
+        with (
+            socket.create_connection((host, port), timeout=timeout) as sock,
+            ctx.wrap_socket(sock, server_hostname=host),
+        ):
+            return True, None
     except ssl.SSLCertVerificationError as exc:
         return False, getattr(exc, "verify_message", None) or str(exc)
-    except (ssl.SSLError, OSError, socket.timeout) as exc:
+    except (TimeoutError, ssl.SSLError, OSError) as exc:
         return None, str(exc)
 
 
@@ -143,7 +149,9 @@ def _parse_certificate(der_cert: bytes) -> CertificateInfo:
 def scan_domain(domain: str, port: int = 443, timeout: float = 5.0) -> DomainResult:
     result = DomainResult(domain=domain, port=port)
 
-    protocol, cipher_name, der_cert, handshake_error = _default_handshake(domain, port, timeout)
+    protocol, cipher_name, der_cert, handshake_error = _default_handshake(
+        domain, port, timeout
+    )
     if der_cert is None:
         result.error = str(handshake_error) if handshake_error else "Handshake failed."
         result.reachable = False

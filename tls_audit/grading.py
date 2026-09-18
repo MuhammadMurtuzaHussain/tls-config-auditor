@@ -26,8 +26,19 @@ RECOMMENDED_MINIMUM = "TLSv1.2"
 RECOMMENDED_PROTOCOL = "TLSv1.3"
 
 WEAK_CIPHER_SUBSTRINGS = (
-    "NULL", "EXPORT", "RC4", "RC2", "DES", "3DES", "MD5", "ADH", "AECDH",
-    "PSK", "SEED", "IDEA", "ANON",
+    "NULL",
+    "EXPORT",
+    "RC4",
+    "RC2",
+    "DES",
+    "3DES",
+    "MD5",
+    "ADH",
+    "AECDH",
+    "PSK",
+    "SEED",
+    "IDEA",
+    "ANON",
 )
 
 MIN_RSA_KEY_BITS = 2048
@@ -120,10 +131,14 @@ def grade_certificate(
         issues.append(f"Certificate expired {abs(days_remaining)} day(s) ago.")
         status = FAIL
     elif days_remaining <= crit_days:
-        issues.append(f"Certificate expires in {days_remaining} day(s) (<= {crit_days}).")
+        issues.append(
+            f"Certificate expires in {days_remaining} day(s) (<= {crit_days})."
+        )
         status = FAIL
     elif days_remaining <= warn_days:
-        issues.append(f"Certificate expires in {days_remaining} day(s) (<= {warn_days}).")
+        issues.append(
+            f"Certificate expires in {days_remaining} day(s) (<= {warn_days})."
+        )
         status = WARN
     else:
         status = PASS

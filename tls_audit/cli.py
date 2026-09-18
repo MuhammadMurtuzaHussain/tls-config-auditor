@@ -47,7 +47,9 @@ def _to_row(result: DomainResult, warn_days: int, crit_days: int) -> dict:
         }
 
     protocol_grade = grading.grade_protocols(result.protocols)
-    cipher_grade = grading.grade_cipher(result.negotiated_cipher, result.negotiated_protocol)
+    cipher_grade = grading.grade_cipher(
+        result.negotiated_cipher, result.negotiated_protocol
+    )
 
     cert = result.certificate
     trust_issues: list[str] = []
@@ -61,7 +63,9 @@ def _to_row(result: DomainResult, warn_days: int, crit_days: int) -> dict:
             crit_days=crit_days,
         )
         cert_days_remaining = (
-            (cert.not_after - datetime.now(timezone.utc)).days if cert.not_after else None
+            (cert.not_after - datetime.now(timezone.utc)).days
+            if cert.not_after
+            else None
         )
         if cert.trusted is False:
             trust_issues = [f"Certificate chain not trusted: {cert.trust_error}"]
@@ -72,7 +76,9 @@ def _to_row(result: DomainResult, warn_days: int, crit_days: int) -> dict:
     statuses = [protocol_grade.status, cipher_grade.status, cert_grade.status]
     if trust_issues:
         statuses.append(grading.FAIL)
-    issues = protocol_grade.issues + cipher_grade.issues + cert_grade.issues + trust_issues
+    issues = (
+        protocol_grade.issues + cipher_grade.issues + cert_grade.issues + trust_issues
+    )
 
     return {
         "domain": result.domain,
@@ -98,18 +104,41 @@ def build_parser() -> argparse.ArgumentParser:
         prog="tls-audit",
         description="Check a list of domains' TLS configuration against current best practice.",
     )
-    parser.add_argument("domains", nargs="*", help="Domains to check (space separated).")
     parser.add_argument(
-        "--domains-file", help="Path to a file with one domain per line (default: domains.txt)."
+        "domains", nargs="*", help="Domains to check (space separated)."
+    )
+    parser.add_argument(
+        "--domains-file",
+        help="Path to a file with one domain per line (default: domains.txt).",
     )
     parser.add_argument("--port", type=int, default=443)
-    parser.add_argument("--timeout", type=float, default=5.0, help="Per-connection timeout in seconds.")
-    parser.add_argument("--warn-days", type=int, default=30, help="Warn when a cert expires within N days.")
-    parser.add_argument("--crit-days", type=int, default=14, help="Fail when a cert expires within N days.")
-    parser.add_argument("--workers", type=int, default=8, help="Concurrent domains to scan.")
-    parser.add_argument("--json", metavar="PATH", help="Also write the full report as JSON to PATH.")
-    parser.add_argument("--no-color", action="store_true", help="Disable ANSI colour in the table.")
-    parser.add_argument("--strict", action="store_true", help="Exit non-zero on WARN as well as FAIL.")
+    parser.add_argument(
+        "--timeout", type=float, default=5.0, help="Per-connection timeout in seconds."
+    )
+    parser.add_argument(
+        "--warn-days",
+        type=int,
+        default=30,
+        help="Warn when a cert expires within N days.",
+    )
+    parser.add_argument(
+        "--crit-days",
+        type=int,
+        default=14,
+        help="Fail when a cert expires within N days.",
+    )
+    parser.add_argument(
+        "--workers", type=int, default=8, help="Concurrent domains to scan."
+    )
+    parser.add_argument(
+        "--json", metavar="PATH", help="Also write the full report as JSON to PATH."
+    )
+    parser.add_argument(
+        "--no-color", action="store_true", help="Disable ANSI colour in the table."
+    )
+    parser.add_argument(
+        "--strict", action="store_true", help="Exit non-zero on WARN as well as FAIL."
+    )
     return parser
 
 
@@ -121,7 +150,8 @@ def main(argv: list[str] | None = None) -> int:
     rows: list[dict] = []
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {
-            pool.submit(scan_domain, domain, args.port, args.timeout): domain for domain in domains
+            pool.submit(scan_domain, domain, args.port, args.timeout): domain
+            for domain in domains
         }
         for future in as_completed(futures):
             result = future.result()
